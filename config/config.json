@@ -1,0 +1,13 @@
+{
+	"port":3000,
+	"mode":"development",
+	"log":"log.log",
+	"domains":["*"],
+	"transformer":"sockjs",
+	"root":"",
+	"cert":"", 
+	"key":"",
+	"OFFLINE":0,
+	"ONLINE":1,		
+	"AWAY":2
+}
