@@ -5,6 +5,10 @@
 
 Jot server allows to work with any number of domains with UNA **Jot Messenger** module and Profiles on each domain.
 
+
+
+
+
 ### How to install server
 
 1. Install the latest stable Node js version (up to **6.x.x** version) on your server. More details about node js installation you may read here https://nodejs.org/
