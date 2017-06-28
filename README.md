@@ -1,10 +1,8 @@
-<img src="https://user-images.githubusercontent.com/22210428/27618960-af79900e-5c02-11e7-916f-e56725ff3d13.png" width="200" align="left"> 
+<img src="https://user-images.githubusercontent.com/22210428/27618960-af79900e-5c02-11e7-916f-e56725ff3d13.png" width="200"> 
+
 ## Jot Server
 
-
-
 Jot Server is the server-side part of the UNA Messenger, supporting any number of domains with the UNA **Jot Messenger** app and Profiles on each domain.
-
 
 ### How to install the Jot Server
 
