@@ -1,6 +1,7 @@
 ## Jot Server
 
-![final-logo-large](https://user-images.githubusercontent.com/22210428/27618960-af79900e-5c02-11e7-916f-e56725ff3d13.png =250x)
+
+<img src="https://user-images.githubusercontent.com/22210428/27618960-af79900e-5c02-11e7-916f-e56725ff3d13.png" width="200">
 
 Jot server allows to work with any number of domains with UNA **Jot Messenger** module and Profiles on each domain.
 
