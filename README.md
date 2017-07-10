@@ -1,8 +1,10 @@
+<img src="https://user-images.githubusercontent.com/22210428/27618960-af79900e-5c02-11e7-916f-e56725ff3d13.png" width="200"> 
+
 ## Jot Server
 
-Jot server allows to work with any number of domains with UNA **Jot Messenger** module and Profiles on each domain.
+Jot Server is the server-side part of the UNA Messenger, supporting any number of domains with the UNA **Jot Messenger** app and Profiles on each domain.
 
-### How to install server
+### How to install the Jot Server
 
 1. Install the latest stable Node js version (up to **6.x.x** version) on your server. More details about node js installation you may read here https://nodejs.org/
 2. Upload **Jot Server** files to any folder on your server
