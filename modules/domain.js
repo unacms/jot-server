@@ -2,8 +2,8 @@
  * Copyright (c) UNA, Inc - https://una.io
  * MIT License - https://opensource.org/licenses/MIT
  *
- * @defgroup    UnaMessenger UNA Core
-  * @ingroup     UnaServer
+ * @defgroup	UnaMessenger UNA Core
+  * @ingroup	UnaServer
   *
  * @{
  */
@@ -104,13 +104,13 @@ oDomain.prototype.getClients = function(){
 oDomain.prototype.broadcastUpdatedStatus = function(iProfileId, sId){
 	var oUser =	this.getClient(iProfileId);
 		iStatus = typeof oUser !== 'undefined' ? oUser.getUserStatus() : 0,
-		oInfo = {
+		oData = {
 					action:'update_status',
 					status:iStatus,
 					user_id:iProfileId
 				};
-						
-	return this.broadcastClients(oInfo, sId, iProfileId, true);
+				
+	return this.broadcastClients(oData, sId, iProfileId, true);
 }
 
 /**
@@ -118,7 +118,7 @@ oDomain.prototype.broadcastUpdatedStatus = function(iProfileId, sId){
 * @param object oData data to sent
 * @param string sId socket's name
 * @param int iSender Profile sent data
-* @param boolean bPass if true allows exclude profile with all its sockets to get this data 
+* @param boolean bPass, true - exclude profile with all its sockets to get the data 
 * @return array list of profiles received message
 */
 oDomain.prototype.broadcastClients = function(oData, sId, iSender, bPass){
@@ -127,21 +127,22 @@ oDomain.prototype.broadcastClients = function(oData, sId, iSender, bPass){
 		bPass = bPass || false,
 		iSender = (iSender && parseInt(iSender)) || 0;		
 	
-	log.info("Broadcast request sId = %s, sender = %d and pass = %d, request", sId, iSender, bPass, oData);
+	log.info("Broadcast request from sId = %s, profile_id = %d, body:\n(", sId, iSender, oData, ")");
 	
-	if (this.aClients.size == 0 || oData == undefined || !iSender) 
+	if (this.aClients.size == 0 || typeof oData === "undefined" || !iSender) 
 		return 0;
 		
 	this.aClients.forEach(function(oClient, sKey, oObject){
-		if (iSender == oClient.iProfileId && !bPass)
+		if (iSender == oClient.iProfileId && bPass)
 			return;
 			
 		if (oClient.broadcastSockets(oData, sId)){ 				
 			if (oClient.getUserStatus() == 1)
 					aSentTo.push(oClient.iProfileId);
 		}		
-		else if (iSender != oClient.iProfileId)
-			_this.removeClient(oClient.iProfileId);
+		else 
+			if (iSender != oClient.iProfileId)
+				_this.removeClient(oClient.iProfileId);
 	});
 	
 	log.info('Total sent to %d profile(s) \n', aSentTo.length);

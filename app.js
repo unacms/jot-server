@@ -2,8 +2,8 @@
  * Copyright (c) UNA, Inc - https://una.io
  * MIT License - https://opensource.org/licenses/MIT
  *
- * @defgroup    UnaMessenger UNA Core
-  * @ingroup     UnaServer
+ * @defgroup	UnaMessenger UNA Core
+  * @ingroup	UnaServer
   *
  * @{
  */

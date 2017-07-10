@@ -3,7 +3,7 @@
  * MIT License - https://opensource.org/licenses/MIT
  *
  * @defgroup	UnaMessenger UNA Core
-  * @ingroup	 UnaServer
+  * @ingroup	UnaServer
   *
  * @{
  */
@@ -46,15 +46,15 @@ function oClient(iProfileId, oSocket, iStatus){
 * @return object this to allow to chain methods
 */
 oClient.prototype.addSocket = function(oSocket, iStatus){
-if (!this.aSockets.has(oSocket.id)){
-	this.aSockets.set(oSocket.id, {
-										status: typeof iStatus === "undefined" ? oConfig.get('ONLINE') : iStatus,
-										spark: oSocket
-									});
-	this.iProfileStatus = oConfig.get('ONLINE');
-}	 
+	if (!this.aSockets.has(oSocket.id)){
+		this.aSockets.set(oSocket.id, {
+											status: typeof iStatus === "undefined" ? oConfig.get('ONLINE') : iStatus,
+											spark: oSocket
+										});
+		this.iProfileStatus = oConfig.get('ONLINE');
+	}	 
 
-return this;
+	return this;
 }
 /**
 * Remove  all profile's sockets
@@ -108,6 +108,11 @@ oClient.prototype.setStatus = function(sId, iStatus){
 /**
 * Calculate profile's status if profile has more then one socket
 * @return object this to allow to chain methods
+*
+*readyState value:	
+*OPENING = 1;	opening the connection.
+*CLOSED  = 2;	not active connection.
+*OPEN    = 3;	active connection.
 */
 oClient.prototype.updateStatus = function(){
 	var _this = this,
@@ -118,17 +123,18 @@ oClient.prototype.updateStatus = function(){
 		return this;
 	}   
 	else	   
-		this.aSockets.forEach(function(oSocket, sKey, oObject){
+		this.aSockets.forEach(function(oSocket, sKey, oObject){			
+			if (oSocket.spark.readyState != 3){
+				_this.removeSocket(sKey);
+				return;
+			}
+			
 			if (oSocket.status == oConfig.get('ONLINE'))
 					bActiveExists = true;
 		});   
-   
-	if (_this.iProfileStatus != oConfig.get('ONLINE') && bActiveExists)
-		_this.iProfileStatus = oConfig.get('ONLINE');
-	else
-	if (_this.iProfileStatus == oConfig.get('ONLINE') && !bActiveExists)
-		_this.iProfileStatus = oConfig.get('AWAY');
-   
+      
+	_this.iProfileStatus = bActiveExists ? oConfig.get('ONLINE') : oConfig.get('AWAY');
+  
 	return this;
 }
 
@@ -153,8 +159,8 @@ oClient.prototype.broadcastSockets = function(oData, sId){
 		return iSentSocketsCount;
 	   
 	this.aSockets.forEach(function(oSocket, sKey, oObject){
-		if (typeof oSocket.spark === "undefined"){
-			_this.removeSocket(sId);
+		if (typeof oSocket.spark === "undefined" || oSocket.spark.readyState != 3){
+			_this.removeSocket(sKey);
 			return;
 		}
 	   
@@ -162,7 +168,7 @@ oClient.prototype.broadcastSockets = function(oData, sId){
 			if (oSocket.spark.write(oData))
 				iSentSocketsCount++;
 			else
-				_this.removeSocket(sId);
+				_this.removeSocket(sKey);
 		}				
 	});   
 	   

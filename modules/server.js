@@ -2,8 +2,8 @@
  * Copyright (c) UNA, Inc - https://una.io
  * MIT License - https://opensource.org/licenses/MIT
  *
- * @defgroup    UnaMessenger UNA Core
-  * @ingroup     UnaServer
+ * @defgroup	UnaMessenger UNA Core
+  * @ingroup	UnaServer
   *
  * @{
  */
@@ -28,21 +28,28 @@ var oConfig = require('../config'),	// config file in jason format, contains pro
  * Main function to run the server
  */
 exports.run = function(){
-	oPrimusServer.on('connection', (oSpark) => {	
+	oPrimusServer.on('connection', (oSpark) => {
+		var oConnect = null,
+			sServerIP = null;
+		
 		/* View request details in development mode */
 		log.info('connection from ip = %s, id = %s \n', oSpark.address.ip, oSpark.id);
-		log.info('address \n', oSpark.address);
-		
-		var oConnect = null,
-			sServerIP = '0.0.0.0';
 		
 		/* Init event listeners  */
 		oSpark.on('data', (oData) => {
-			sServerIP = oData.ip || sServerIP;
+			if (/^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(oData.ip))
+				sServerIP = oData.ip;
+			else
+			{
+				if (oData.ip !== undefined)
+					log.warn('Access Denied. Invalid IP address = %s.', oData.ip);
+				
+				return; 
+			}
 
 			/* Check if domain in allowed list, if not send respond and close connection */
 			if (oConfig.get('domains') != "*" && !~oConfig.get('domains').indexOf(sServerIP)){
-				log.warn('Access Denied for IP: IP = %s. It is not listed in allowed domains list', sServerIP);	
+				log.warn('Access Denied: IP = %s. It is not listed in allowed domains list', sServerIP);	
 				oSpark.write({
 								'action':'denied'
 							 });
@@ -54,7 +61,7 @@ exports.run = function(){
 				aDomains.set(sServerIP, new oDomain(sServerIP));
 			
 			oConnect = aDomains.get(sServerIP);
-			log.info('server ip = %s \n', sServerIP, oData);
+			log.info('server ip = %s \n', sServerIP);
 			
 			/* Parse data and emit prop event  */
 			if (typeof oData.action !== 'undefined' && !oSpark.emit(oData.action, oData))
@@ -62,33 +69,30 @@ exports.run = function(){
 			
 		}) 
 		/*  Messenger Init  listener */
-		.on('init', (oData) => {
-			log.info(oData, oSpark.id);	
+		.on('init', (oData) => {			
+			log.info('Incoming original request', oData);	
 			oConnect.addClient(oData.user_id, oSpark, oData.status).broadcastUpdatedStatus(oData.user_id, oSpark.id);
-			
-			if (typeof oData.status !== 'undefined')
-					oSpark.emit('update_status', oData);			
 		})
 		/*  Member status update listener */
 		.on('update_status', (oData) => {
-			log.info(oData);
-			
-			var oUser =	oConnect.getClient(oData.user_id, oSpark); 
-			
-			if (typeof oUser === "undefined")
-				oConnect.addClient(oData.user_id, oSpark, oData.status);
-			else
-				oUser.setStatus(oSpark.id, oData.status).updateStatus();
-			
-			setImmediate(() => {
-				oConnect.broadcastUpdatedStatus(oData.user_id, oSpark.id);
+			log.info('Incoming original request', oData);
+
+			setImmediate(() => {			
+				var oUser =	oConnect.getClient(oData.user_id, oSpark); 
+				
+				if (typeof oUser === "undefined")
+					oConnect.addClient(oData.user_id, oSpark, oData.status);
+				else
+					oUser.setStatus(oSpark.id, oData.status).updateStatus();
+
+					oConnect.broadcastUpdatedStatus(oData.user_id, oSpark.id);
 			});
 			
 		})
 		/*  Members close messenger listener */
 		.on('before_delete', (oData) => {
-			log.info(oData);
-	
+			log.info('Incoming original request', oData);
+			
 			setImmediate(() => {	  
 				if (oConnect)
 					oConnect.removeSocket(oData.user_id, oSpark).broadcastUpdatedStatus(oData.user_id, oSpark.id);
@@ -99,15 +103,18 @@ exports.run = function(){
 		})
 		/*  Member typing a message listener */
 		.on('typing',function(oData){
-			log.info(oData);
+			log.info('Incoming original request', oData);
+			
 			setImmediate(() => {
 				oConnect.broadcastClients(oData, oSpark.id, oData.user_id);
 			});
 		})
 		/*  Member sent a message listener */
 		.on('msg',function(oData){
-			setImmediate(() => {	
-				var aResult = oConnect.broadcastClients(oData, oSpark.id, oData.user_id, true),
+			log.info('Incoming original request', oData);	
+			
+			setImmediate(() => {
+				var aResult = oConnect.broadcastClients(oData, oSpark.id, oData.user_id),
 					oResponse = {
 						action:'check_sent',
 						sent:aResult,
@@ -124,5 +131,10 @@ exports.run = function(){
 		});			
 	});
 }
+
+/*
+	Generates new primus.js file for clients, you should rebuild it every time when server's settings are changed
+	oPrimusServer.save(__dirname +'/primus.js');
+*/
 
 /** @} */
