@@ -13,7 +13,7 @@ Jot Server is the server-side part of the UNA Messenger, supporting any number o
 ```js
 {
         /* Port on which you would like to run the server */
-        "port":3000,
+        "port":5443,
        
         /* development mode allows to see details of request and response in real time when server is running,
         you may leave it empty when run the server in production */
