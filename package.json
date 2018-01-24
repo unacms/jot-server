@@ -1,6 +1,6 @@
 {
   "name": "jot_server",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Jot Messenger",
   "main": "app.js",
   "dependencies": {
