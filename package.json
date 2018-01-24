@@ -7,7 +7,8 @@
     "winston": "*",
     "primus": "*",
 	"nconf": "*",
-	"sockjs": "*"
+	"sockjs": "*",
+	"validate-ip-node": "*"
   },
   "repository": {
     "type": "git",

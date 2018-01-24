@@ -16,6 +16,7 @@ var oConfig = require('../config'),	// config file in jason format, contains pro
 	oDomain = require('./domain'),
 	aDomains = new Map(),
 	oPrimus = require('primus'),
+	validateIP = require('validate-ip-node'),
 	oPrimusServer = new oPrimus.createServer({
 		port:oConfig.get('port'), 
 		transformer:oConfig.get('transformer'),
@@ -37,7 +38,7 @@ exports.run = function(){
 		
 		/* Init event listeners  */
 		oSpark.on('data', (oData) => {
-			if (/^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(oData.ip))
+			if (validateIP(oData.ip))
 				sServerIP = oData.ip;
 			else
 			{
@@ -112,12 +113,12 @@ exports.run = function(){
 		/*  Member sent a message listener */
 		.on('msg',function(oData){
 			log.info('Incoming original request', oData);	
-			
 			setImmediate(() => {
 				var aResult = oConnect.broadcastClients(oData, oSpark.id, oData.user_id),
 					oResponse = {
 						action:'check_sent',
 						sent:aResult,
+						addon: oData.addon || '',
 						lot:oData.lot
 					};
 				
