@@ -1,6 +1,6 @@
 {
   "name": "jot_server",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Jot Messenger",
   "main": "app.js",
   "dependencies": {
@@ -14,7 +14,7 @@
     "type": "git",
     "url": "git+https://github.com/unaio/jot-client-una.git"
   },
-  "author": "",
+  "author": "UNA Inc <support@una.io> (https://una.io)",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/unaio/jot-client-una/issues"

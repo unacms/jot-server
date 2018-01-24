@@ -13,7 +13,7 @@ Jot Server is the server-side part of the UNA Messenger, supporting any number o
 ```js
 {
         /* Port on which you would like to run the server */
-        "port":3000,
+        "port":5443,
        
         /* development mode allows to see details of request and response in real time when server is running,
         you may leave it empty when run the server in production */
@@ -22,8 +22,8 @@ Jot Server is the server-side part of the UNA Messenger, supporting any number o
         /* This file will be used as log file for errors and warnings which may occur */
         "log":"log.log",
        
-        /* Domains list of allowed domains connected to the server.
-        You may put domains one by one as "127.0.0.1","127.0.0.2" or just use "*"
+        /* List of allowed IPs connected to the server.
+        You may put IPs one by one as "127.0.0.1","127.0.0.2" or just use "*"
         (in this case any domain may use your server for Jot Messenger module) */
         "domains":["*"],
        
