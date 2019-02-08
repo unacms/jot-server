@@ -32,7 +32,7 @@ Jot Server is the server-side part of the UNA Messenger, supporting any number o
         primus page https://github.com/primus/primus */
         "transformer":"sockjs",
        
-        /* If you have https servers (recommended) you need to fill 3 fields below */
+        /* If you have https server (recommended) you need to fill 3 fields below */
         root: '/folder/with/https/cert/files',
         cert: 'myfilename.cert',
         key: 'myfilename.cert',
@@ -55,3 +55,10 @@ Jot Server is the server-side part of the UNA Messenger, supporting any number o
  Install it globally on the server and then you may run the server using this command
  
  ```forever start app.js```
+
+If you are using certificate and https server you need to make **Jot Server** to watch on the all changes in certificate folder.
+So for this purpose we need to run the server using the command below instead of simple command above:
+
+```forever -w --watchDirectory=/folder/with/https/cert/files start app.js```
+
+Be sure that in the command line you defined the same path to certificate folder as you have set in **config.json** file as **root** parameter value. 
