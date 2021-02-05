@@ -16,7 +16,7 @@ var oConfig = require('../config'),	// config file in jason format, contains pro
 	oDomain = require('./domain'),
 	aDomains = new Map(),
 	oPrimus = require('primus'),
-	validateIP = require('validate-ip-node'),
+	validateIP = require('isip'),
 	oPrimusServer = new oPrimus.createServer({
 		port:oConfig.get('port'), 
 		transformer:oConfig.get('transformer'),
