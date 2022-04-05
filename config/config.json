@@ -4,6 +4,7 @@
 	"log":"log.log",
 	"domains":["*"],
 	"transformer":"sockjs",
+	"secret": "",
 	"root":"",
 	"cert":"", 
 	"key":"",

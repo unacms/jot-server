@@ -14,6 +14,7 @@
 var oConfig = require('../config'),	// config file in jason format, contains projects server settings
 	log = require('./log')(module), // logger, allows to log info, warnings and errors 
 	oDomain = require('./domain'),
+	oJwt = require('jsonwebtoken'), // jwt tokens
 	aDomains = new Map(),
 	oPrimus = require('primus'),
 	validateIP = require('isip'),
@@ -54,7 +55,7 @@ exports.run = function(){
 				oSpark.write({
 								'action':'denied'
 							 });
-				oSpark.end();				
+				oSpark.end();
 			}	
 			
 			/* Add Site's IP address to Domains list */
@@ -70,9 +71,31 @@ exports.run = function(){
 			
 		}) 
 		/*  Messenger Init  listener */
-		.on('init', (oData) => {			
-			log.info('Incoming original request', oData);	
-			oConnect.addClient(oData.user_id, oSpark, oData.status).broadcastUpdatedStatus(oData.user_id, oSpark.id);
+		.on('init', (oData) => {
+			const { jwt, user_id, status } = oData;
+			if (oConfig.get('secret') !== '' && typeof jwt !== 'undefined'){
+				oJwt.verify(jwt, oConfig.get('secret'), function(error, decoded) {
+					if (error) {
+						log.error('JWT token is not verified!');
+						oSpark.write({
+							'action': 'jwt-error'
+						});
+						oSpark.end();
+						return;
+					}
+					else
+					{
+						oSpark.write({
+							action: 'token-init',
+							token: oSpark.id
+						});
+						log.info('JWT token is verified. Payload = ', decoded);
+					}
+				});
+			}
+
+			log.info('Incoming original request', oData);
+			oConnect.addClient(oData.user_id, oSpark, status).broadcastUpdatedStatus(user_id, oSpark.id);
 		})
 		/*  Member status update listener */
 		.on('update_status', (oData) => {
