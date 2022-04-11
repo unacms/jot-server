@@ -62,3 +62,10 @@ So for this purpose we need to run the server using the command below instead of
 ```forever -w --watchDirectory=/folder/with/https/cert/files start app.js```
 
 Be sure that in the command line you defined the same path to certificate folder as you have set in **config.json** file as **root** parameter value. 
+
+### Docker
+
+It's possible to run Jot server in a container:
+```bash
+docker run -p 5000:5000 -d unaio/jot-server:latest
+```

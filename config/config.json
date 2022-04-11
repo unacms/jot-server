@@ -1,5 +1,5 @@
 {
-	"port":5443,
+	"port":5000,
 	"mode":"",
 	"log":"log.log",
 	"domains":["*"],
