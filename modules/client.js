@@ -172,7 +172,7 @@ oClient.prototype.broadcastSockets = function(oData, sId){
 		}				
 	});   
 	   
-	log.info('Sent to profile=%d (%d sockets number) \n',  this.iProfileId, iSentSocketsCount, this.aSockets.keys(), '\n');   
+	log.info('Sent to profile=%d (%d sockets number) %s',  this.iProfileId, iSentSocketsCount, this.aSockets.keys());
 	return iSentSocketsCount;
 }
 

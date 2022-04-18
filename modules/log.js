@@ -13,26 +13,36 @@
  * Allows to view info in development mode,  otherwise writs error and warning to the log file
  */
  
-var oConfig = require('../config'),
-	oWinston = require('winston')
+const oConfig = require('../config'),
+	{ createLogger, format, transports } = require('winston');
 
 function getLogger(oModule) {
-  var sPath = oModule.filename.split('/').slice(-2).join('/'),
-	  oLogger = new oWinston.Logger();
+  const sPath = oModule.filename.split('/').slice(-2).join('/'),
+	  oLogger = createLogger({
+		  transports: [
+			  new transports.File({
+				  format: format.combine(
+					  format.splat(),
+					  format.simple(),
+				  ),
+				  filename: oConfig.get('log'),
+				  humanReadableUnhandledException: true,
+				  level: 'error',
+				  label: sPath
+			  })
+		  ]
+	  });
 
-	if (oConfig.get('mode') == 'development')	
-		oLogger.add(oWinston.transports.Console,{
-			colorize: true,
-			level: 'info',
-		  });	  
-
-    oLogger.add(oWinston.transports.File,{ 
-		filename: oConfig.get('log'),
-		humanReadableUnhandledException: true,
-		level: 'error',
-		label:sPath
-	});
-	  
+	if (oConfig.get('mode').toString() === 'development') {
+		oLogger.add(new transports.Console({
+			format: format.combine(
+				format.colorize(),
+				format.splat(),
+				format.simple(),
+			),
+			level: 'info'
+		}));
+	}
   
   return oLogger;
 }

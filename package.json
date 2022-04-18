@@ -4,12 +4,12 @@
   "description": "Jot Messenger",
   "main": "app.js",
   "dependencies": {
-    "isip": "*",
+    "ip-address": "^8.1.0",
     "jsonwebtoken": "^8.5.1",
-    "nconf": "0.10.0",
+    "nconf": "0.12.0",
     "primus": "7.3.0",
     "sockjs": "*",
-    "winston": "^2.4.0"
+    "winston": "^3.7.2"
   },
   "repository": {
     "type": "git",

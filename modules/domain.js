@@ -26,11 +26,11 @@ var oConfig = require('../config'),
 */
 function oDomain(sIp){
 	this.sIp = sIp || '0.0.0.0';
-	this.aClients = new Map(); // all domain's profiles connected to th server 
+	this.aClients = new Map(); // all domain's profiles connected to the server
 	Object.defineProperty(this, 'size', {
-			get: function() {			  
-			  return this.aClients.size;
-			}
+		get: function() {
+		  return this.aClients.size;
+		}
 	});
 }
 
@@ -58,7 +58,7 @@ oDomain.prototype.addClient = function(iProfileId, oSocket, iStatus){
 * @return object oClient class
 */
 oDomain.prototype.getClient = function(iProfileId){
-	if (iProfileId != undefined && this.aClients.has(iProfileId))
+	if (iProfileId !== undefined && this.aClients.has(iProfileId))
 		return this.aClients.get(iProfileId);
 }
 
@@ -127,7 +127,7 @@ oDomain.prototype.broadcastClients = function(oData, sId, iSender, bPass){
 		bPass = bPass || false,
 		iSender = (iSender && parseInt(iSender)) || 0;		
 	
-	log.info("Broadcast request from sId = %s, profile_id = %d, body:\n(", sId, iSender, oData, ")");
+	log.info("Broadcast request from sId = %s, profile_id = %d, body:%s", sId, iSender, oData);
 	
 	if (this.aClients.size == 0 || typeof oData === "undefined" || !iSender) 
 		return 0;

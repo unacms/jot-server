@@ -11,13 +11,13 @@
 /**
  * Init server utils and param
  */ 
-var oConfig = require('../config'),	// config file in jason format, contains projects server settings
+const oConfig = require('../config'),	// config file in jason format, contains projects server settings
 	log = require('./log')(module), // logger, allows to log info, warnings and errors 
 	oDomain = require('./domain'),
 	oJwt = require('jsonwebtoken'), // jwt tokens
 	aDomains = new Map(),
 	oPrimus = require('primus'),
-	validateIP = require('isip'),
+	oIpAddress = require('ip-address').Address4,
 	oPrimusServer = new oPrimus.createServer({
 		port:oConfig.get('port'), 
 		transformer:oConfig.get('transformer'),
@@ -31,57 +31,45 @@ var oConfig = require('../config'),	// config file in jason format, contains pro
  */
 exports.run = function(){
 	oPrimusServer.on('connection', (oSpark) => {
-		var oConnect = null,
-			sServerIP = null;
-		
-		/* View request details in development mode */
-		log.info('connection from ip = %s, id = %s \n', oSpark.address.ip, oSpark.id);
-		
-		/* Init event listeners  */
-		oSpark.on('data', (oData) => {
-			if (validateIP(oData.ip))
-				sServerIP = oData.ip;
-			else
-			{
-				if (oData.ip !== undefined)
-					log.warn('Access Denied. Invalid IP address = %s.', oData.ip);
-				
-				return; 
-			}
+		let oConnect = null,
+			sUserIP = oSpark && oSpark.address.ip.replace(/^::ffff:/, '');
 
-			/* Check if domain in allowed list, if not send respond and close connection */
-			if (oConfig.get('domains') != "*" && !~oConfig.get('domains').indexOf(sServerIP)){
-				log.warn('Access Denied: IP = %s. It is not listed in allowed domains list', sServerIP);	
+		/* View request details in development mode */
+		log.info('connection from ip = %s, id = %s \n', sUserIP, oSpark.id);
+		if (oConfig.get('domains') != "*"){
+			if (oIpAddress.isValid(sUserIP) && !~oConfig.get('domains').indexOf(sUserIP)) {
+				log.warn('Access Denied: IP = %s. It is not listed in allowed domains list', sUserIP);
 				oSpark.write({
-								'action':'denied'
-							 });
+					'action': 'denied'
+				});
 				oSpark.end();
-			}	
-			
-			/* Add Site's IP address to Domains list */
-			if (!aDomains.has(sServerIP) && oData.action != 'before_delete')
-				aDomains.set(sServerIP, new oDomain(sServerIP));
-			
-			oConnect = aDomains.get(sServerIP);
-			log.info('server ip = %s \n', sServerIP);
-			
+			}
+		};
+
+		/* Init event listeners */
+		oSpark.on('data', (oData) => {
+			const { action } = oData;
 			/* Parse data and emit prop event  */
-			if (typeof oData.action !== 'undefined' && !oSpark.emit(oData.action, oData))
-					log.error('Invalid request: action = %s from IP = %s was not executed', oData.action, oSpark.address.ip, oData);		
-			
-		}) 
+			if (typeof action !== 'undefined' && !oSpark.emit(action, oData)) {
+				log.error('Invalid request: action = %s from IP = %s was not executed, request %s', action, oSpark.address.ip, oData);
+				oSpark.write({
+					'action': 'denied'
+				});
+				oSpark.end();
+			}
+		})
 		/*  Messenger Init  listener */
 		.on('init', (oData) => {
-			const { jwt, user_id, status } = oData;
-			if (oConfig.get('secret') !== '' && typeof jwt !== 'undefined'){
+			const { jwt, user_id, status, ident } = oData;
+			log.info('Incoming original params for init request %s', oData);
+
+			/* to use Jwt authentication in case if the secret has been set */
+			if (oConfig.get('secret') !== ''){
 				oJwt.verify(jwt, oConfig.get('secret'), function(error, decoded) {
 					if (error) {
-						log.error('JWT token is not verified!');
-						oSpark.write({
-							'action': 'jwt-error'
-						});
+						log.error('JWT token is not verified! Attempt from IP = %s and request %s', sUserIP, oData);
+						oSpark.write({ 'action': 'jwt-error' });
 						oSpark.end();
-						return;
 					}
 					else
 					{
@@ -89,13 +77,20 @@ exports.run = function(){
 							action: 'token-init',
 							token: oSpark.id
 						});
+
 						log.info('JWT token is verified. Payload = ', decoded);
 					}
 				});
 			}
 
-			log.info('Incoming original request', oData);
-			oConnect.addClient(oData.user_id, oSpark, status).broadcastUpdatedStatus(user_id, oSpark.id);
+			/* Add Site's IP address to Domains list */
+			if (!aDomains.has(ident))
+				aDomains.set(ident, new oDomain(ident));
+
+			oConnect = aDomains.get(ident);
+			log.info('Domain\'s identifier = %s \n', ident);
+
+			oConnect.addClient(user_id, oSpark, status).broadcastUpdatedStatus(user_id, oSpark.id);
 		})
 		/*  Member status update listener */
 		.on('update_status', (oData) => {
