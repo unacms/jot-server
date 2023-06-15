@@ -1,13 +1,13 @@
 {
 	"port":5000,
-	"mode":"",
-	"log":"log.log",
 	"domains":["*"],
-	"transformer":"sockjs",
-	"secret": "",
 	"root":"",
 	"cert":"", 
 	"key":"",
+	"secret": "",
+	"transformer":"sockjs",	
+	"mode":"development",
+	"log":"log.log",
 	"OFFLINE":0,
 	"ONLINE":1,		
 	"AWAY":2

@@ -6,14 +6,21 @@
   "dependencies": {
     "ip-address": "^8.1.0",
     "jsonwebtoken": "^8.5.1",
-    "nconf": "0.12.0",
-    "primus": "7.3.0",
+    "nconf": "^0.12.0",
+    "primus": "*",
+    "primus-rooms": "^3.4.1",
     "sockjs": "*",
-    "winston": "^3.7.2"
+    "winston": "*"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/unaio/jot-client-una.git"
+  },
+  "scripts": {
+    "dev": "nodemon app.js"
+  },
+  "devDependencies": {
+    "nodemon": "*"
   },
   "author": "UNA Inc <support@una.io> (https://una.io)",
   "license": "MIT",

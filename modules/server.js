@@ -13,32 +13,35 @@
  */ 
 const oConfig = require('../config'),	// config file in jason format, contains projects server settings
 	log = require('./log')(module), // logger, allows to log info, warnings and errors 
-	oDomain = require('./domain'),
-	oJwt = require('jsonwebtoken'), // jwt tokens
-	aDomains = new Map(),
 	oPrimus = require('primus'),
+	aDomains = new Map(),
+	oJwt = require('jsonwebtoken'), // jwt tokens
+	Rooms = require('primus-rooms'),
 	oIpAddress = require('ip-address').Address4,
 	oPrimusServer = new oPrimus.createServer({
 		port:oConfig.get('port'), 
 		transformer:oConfig.get('transformer'),
 		'root': oConfig.get('root'), 
 		'cert': oConfig.get('cert'),
-		'key': oConfig.get('key')
-	});	
+		'key': oConfig.get('key'),
+	});
+
+// add rooms to Primus
+oPrimusServer.plugin('rooms', Rooms);
 
 /**
  * Main function to run the server
  */
 exports.run = function(){
 	oPrimusServer.on('connection', (oSpark) => {
-		let oConnect = null,
-			sUserIP = oSpark && oSpark.address.ip.replace(/^::ffff:/, '');
+		const sUserIP = oSpark && oSpark.address.ip.replace(/^::ffff:/, '');
+		let sDomain = null;
 
 		/* View request details in development mode */
 		log.info('connection from ip = %s, id = %s \n', sUserIP, oSpark.id);
 		if (oConfig.get('domains') != "*"){
 			if (oIpAddress.isValid(sUserIP) && !~oConfig.get('domains').indexOf(sUserIP)) {
-				log.warn('Access Denied: IP = %s. It is not listed in allowed domains list', sUserIP);
+				log.warn('Access Denied: IP = %s, client with id = %s. It is not listed in allowed domains list. \n', sUserIP, oSpark.id);
 				oSpark.write({
 					'action': 'denied'
 				});
@@ -48,7 +51,8 @@ exports.run = function(){
 
 		/* Init event listeners */
 		oSpark.on('data', (oData) => {
-			const { action } = oData;
+			const { action, lot, user_id } = oData;
+
 			/* Parse data and emit prop event  */
 			if (typeof action !== 'undefined' && !oSpark.emit(action, oData)) {
 				log.error('Invalid request: action = %s from IP = %s was not executed, request %s', action, oSpark.address.ip, oData);
@@ -57,10 +61,25 @@ exports.run = function(){
 				});
 				oSpark.end();
 			}
-		})
+
+			/* init Spark user info */
+			oSpark.user_id = user_id;
+
+			log.info('Total rooms on the server = %s \n', oPrimusServer.rooms().length);
+			oPrimusServer.rooms().forEach(function(sRoom){
+				log.info('Room = %s, contains = %d connected user(s):', sRoom, oPrimusServer.room(sRoom).clients().length);
+				oPrimusServer.room(sRoom).clients().forEach((oClient) => {
+					log.info('user %s %s', oClient, oPrimusServer.spark(oClient).user_id);
+				});
+			});
+
+		}) 
 		/*  Messenger Init  listener */
 		.on('init', (oData) => {
-			const { jwt, user_id, status, ident } = oData;
+			const { jwt, ident } = oData;
+
+			sDomain = ident || ip; // TODO: remove this condition in future. It was added for backward compatibility. ident should be main domain key
+			log.info('Domain\'s identifier = %s \n', sDomain);
 			log.info('Incoming original params for init request %s', oData);
 
 			/* to use Jwt authentication in case if the secret has been set */
@@ -83,68 +102,76 @@ exports.run = function(){
 				});
 			}
 
-			/* Add Site's IP address to Domains list */
-			if (!aDomains.has(ident))
-				aDomains.set(ident, new oDomain(ident));
+			log.info('User %d with info %a joined to these rooms:', oSpark.user_id, oData);
+			const fJoinToTheRoom = ({ rooms }) => {
+					if (Array.isArray(rooms)) {
+						rooms.forEach((iTalkId) => {
+							if (oPrimusServer.join(oSpark, `${sDomain}:${iTalkId}`))
+								log.info('%s', `${sDomain}:${iTalkId}`);
+						});
+					}
+				}
 
-			oConnect = aDomains.get(ident);
-			log.info('Domain\'s identifier = %s \n', ident);
-
-			oConnect.addClient(user_id, oSpark, status).broadcastUpdatedStatus(user_id, oSpark.id);
+			fJoinToTheRoom(oData);
+			log.info('Existed rooms list %s', oPrimusServer.rooms());
 		})
 		/*  Member status update listener */
 		.on('update_status', (oData) => {
-			log.info('Incoming original request', oData);
-
-			setImmediate(() => {			
-				var oUser =	oConnect.getClient(oData.user_id, oSpark); 
-				
-				if (typeof oUser === "undefined")
-					oConnect.addClient(oData.user_id, oSpark, oData.status);
-				else
-					oUser.setStatus(oSpark.id, oData.status).updateStatus();
-
-					oConnect.broadcastUpdatedStatus(oData.user_id, oSpark.id);
-			});
-			
+			log.info('Update status request', oData);
+			oPrimusServer.room(sDomain).except(oSpark.id).write(oData);
 		})
 		/*  Members close messenger listener */
 		.on('before_delete', (oData) => {
-			log.info('Incoming original request', oData);
-			
-			setImmediate(() => {	  
-				if (oConnect)
-					oConnect.removeSocket(oData.user_id, oSpark).broadcastUpdatedStatus(oData.user_id, oSpark.id);
-				else
-					log.warn('Socket %s of member %d doesn\'t exist \n', oSpark.id, oData.user_id);	
+			log.info('User left messenger %s', oSpark.id, oData);
+			oPrimusServer.leave(oSpark, `${sDomain}:*`);
+
+			/*log.info('Total rooms on the server = %s \n', oPrimusServer.rooms().length);
+			oPrimusServer.rooms().forEach(function(sRoom){
+				log.info('Room = %s, contains = %d connected user(s):', sRoom, oPrimusServer.room(sRoom).clients().length);
+				oPrimusServer.room(sRoom).clients().forEach((oClient) => {
+					log.info('user %s %s', oClient, oPrimusServer.spark(oClient).user_id);
+				});
+			});*/
+		})
+		/*  Remove profile from the room */
+		.on('leave', ({ lot, profile }) => {
+			log.info('User left the room', `${sDomain}:${lot}`, profile);
+			oPrimusServer.leave(oSpark, `${sDomain}:${lot}`);
+		})
+		/*  Join user to the room */
+		.on('join', ({ lot, profiles }) => {
+			log.info('Join users to the talks %d rooms %s', lot, profiles);
+			if (!(Array.isArray(profiles) && profiles.length))
+				return;
+
+			oPrimusServer.rooms().forEach(function(sRoom){
+				oPrimusServer.room(sRoom).clients().forEach((oClient) => {
+					if (oPrimusServer.spark(oClient).user_id)
+					log.info('user %s %s', oClient, oPrimusServer.spark(oClient).user_id);
 			});
-					
+			});
+
+			oPrimusServer.join(oSpark, `${sDomain}:${lot}`);
 		})
 		/*  Member typing a message listener */
 		.on('typing',function(oData){
-			log.info('Incoming original request', oData);
-			
-			setImmediate(() => {
-				oConnect.broadcastClients(oData, oSpark.id, oData.user_id);
-			});
+			const { lot } = oData;
+			log.info('Typing event occurred, request: ', oData);
+			oPrimusServer.room(`${sDomain}:${lot}`).except(oSpark.id).write(oData);
 		})
 		/*  Member sent a message listener */
 		.on('msg',function(oData){
-			log.info('Incoming original request', oData);	
-			setImmediate(() => {
-				var aResult = oConnect.broadcastClients(oData, oSpark.id, oData.user_id),
-					oResponse = {
-						action:'check_sent',
-						sent:aResult,
-						addon: oData.addon || '',
-						lot:oData.lot
-					};
-				
-				log.info('Response to the client = ', oData, 'Sent to ', aResult, 'profile(s)');			
-				oSpark.write(oResponse);
-			});			
+			const { lot } = oData,
+				  oRoom = oSpark.room(`${sDomain}${lot}`).except(oSpark.id);
+
+			log.info('Message event occurred, request: ', oData);
+			log.info('Send message to clients. Total clients to send = %d', oRoom.clients().length);
+
+			oRoom.write(oData);
+			if (lot)
+				log.info('Total connected users to the room = %d', oPrimusServer.room(`${sDomain}:${lot}`).clients().length, oPrimusServer.room(`${sDomain}:${lot}`).clients());
 		})
-		/*  Primus Erorr listener */
+		/*  Primus Error listener */
 		.on('error', function(){
 			log.error('Request error occurred(', oError, '), data = ', oStructure, ', from IP =', oSpark.address.ip);
 		});			

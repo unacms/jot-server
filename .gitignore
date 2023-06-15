@@ -57,3 +57,9 @@ typings/
 # dotenv environment variables file
 .env
 
+# Exclude files
+log.log
+package-lock.json
+
+# Exclude IDE project folder
+.idea

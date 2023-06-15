@@ -8,7 +8,7 @@
  * @{
  */
 
-var log = require('./modules/log')(module),
+const log = require('./modules/log')(module),
 	oDomain = require('domain').create();
 
 oDomain.on('error', function(oError){
