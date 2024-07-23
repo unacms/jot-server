@@ -7,8 +7,5 @@
 	"secret": "",
 	"transformer":"sockjs",	
 	"mode":"development",
-	"log":"log.log",
-	"OFFLINE":0,
-	"ONLINE":1,		
-	"AWAY":2
+	"log":"log.log"
 }
