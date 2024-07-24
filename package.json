@@ -1,7 +1,7 @@
 {
   "name": "jot_server",
-  "version": "1.0.4",
-  "description": "Jot Messenger",
+  "version": "2.0.0",
+  "description": "Jot Server",
   "main": "app.js",
   "dependencies": {
     "ip-address": "^8.1.0",
@@ -14,7 +14,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/unaio/jot-client-una.git"
+    "url": "git+https://github.com/unacms/jot-server.git"
   },
   "scripts": {
     "dev": "nodemon app.js"
@@ -22,10 +22,10 @@
   "devDependencies": {
     "nodemon": "*"
   },
-  "author": "UNA Inc <support@una.io> (https://una.io)",
+  "author": "UNA Inc <support@una.io> (https://unacms.com)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/unaio/jot-client-una/issues"
+    "url": "https://github.com/unacms/jot-server/issues"
   },
-  "homepage": "https://github.com/unaio/jot-client-una#readme"
+  "homepage": "https://github.com/unacms/jot-server#readme"
 }

@@ -1,71 +1,76 @@
-<img src="https://user-images.githubusercontent.com/22210428/27618960-af79900e-5c02-11e7-916f-e56725ff3d13.png" width="200"> 
+<img src="https://user-images.githubusercontent.com/22210428/27618960-af79900e-5c02-11e7-916f-e56725ff3d13.png" width="100"> 
 
 ## Jot Server
 
-Jot Server is the server-side part of the UNA Messenger, supporting any number of domains with the UNA **Jot Messenger** app and Profiles on each domain.
+Jot Server is the server-side component of UNA Messenger, designed to support multiple sites with the UNACMS **Messenger** module, enabling real-time messaging.
 
-### How to install the Jot Server
+### How to Install the Jot Server
 
-1. Install the latest stable Node js version (up to **6.x.x** version) on your server. More details about node js installation you may read here https://nodejs.org/
-2. Upload **Jot Server** files to any folder on your server
-3. Edit **Jot Server** config file ```config/config.json```. You need to be careful and keep jason format rules to change it.
+1. **Install Node.js and npm package manager**:
+ - Ensure you have the latest stable Node.js version (up to **14.x.x**) and npm on your server. For more details, visit [Node.js](https://nodejs.org/).
 
+2. **Download Jot Server**:
+ - Download the latest release from [GitHub](https://github.com/unacms/jot-server/releases).
+ - Downloaded and unzip file and upload the **jot-server** folder to your server.
+
+3. **Configure Jot Server**:
+ - Edit the `config/config.json` file in the **jot-server** folder. Ensure you follow the JSON format rules carefully.
 ```js
 {
-        /* Port on which you would like to run the server */
-        "port":5443,
-       
-        /* development mode allows to see details of request and response in real time when server is running,
-        you may leave it empty when run the server in production */
-        "mode":"development",
-       
-        /* This file will be used as log file for errors and warnings which may occur */
-        "log":"log.log",
-       
-        /* List of allowed IPs connected to the server.
-        You may put IPs one by one as "127.0.0.1","127.0.0.2" or just use "*"
-        (in this case any domain may use your server for Jot Messenger module) */
-        "domains":["*"],
-       
-        /* It is transformer which is used for Primus by default. We chosen sockjs,
-        because it most stable in our opinion. You may read more about transformers on
-        primus page https://github.com/primus/primus */
-        "transformer":"sockjs",
-       
-        /* If you have https server (recommended) you need to fill 3 fields below */
-        root: '/folder/with/https/cert/files',
-        cert: 'myfilename.cert',
-        key: 'myfilename.cert',
-       
-        /* Profile Status constants, don't need to change them */
-        "OFFLINE":0,
-        "ONLINE":1,       
-        "AWAY":2
- }
+  /* The port number on which the server will run */
+  "port": 5443,
+
+  /* The mode in which the server runs.
+     "development" mode allows real-time viewing of request and response details.
+     Leave this empty for production environments. */
+  "mode": "development",
+
+  /* The file used to log errors and warnings that may occur */
+  "log": "log.log",
+
+  /* A list of allowed IP addresses that can connect to the server.
+     Specify individual IPs like "127.0.0.1", "127.0.0.2", or use "*" to allow any IP to connect. 
+     (Using "*" allows any domain to use your server for the Jot Messenger module) */
+  "domains": ["*"],
+
+  /* The transformer used by Primus, with "sockjs" selected as the default due to its stability.
+     Learn more about transformers on the Primus page: https://github.com/primus/primus */
+  "transformer": "sockjs",
+
+  /* Fill in the fields below if you have an HTTPS server (recommended) */
+  "root": "/folder/with/https/cert/files",
+  "cert": "myfilename.cert",
+  "key": "myfilename.key"
+}
  ```
- 4. All server's dependencies must be installed. You need to go to the Jot Server root folder (where ```package.json``` file is located)
- and run command
- 
- ```npm install```
- 
- 5. Now server can be started by running the **app.js** file.
- You may use any of available for node js tools, which allow to run application permanently.
- 
- Example: **forever** (https://github.com/foreverjs/forever).
- Install it globally on the server and then you may run the server using this command
- 
- ```forever start app.js```
+4. **Install Dependencies**:
+ - Navigate to the Jot Server root folder (where the `package.json` file is located).
+ - Run the following command to install all necessary dependencies:
+   ```bash
+   npm install
+   ```
 
-If you are using certificate and https server you need to make **Jot Server** to watch on the all changes in certificate folder.
-So for this purpose we need to run the server using the command below instead of simple command above:
+5. **Start the Server**:
+ - Start the server by running the `app.js` file. You can use any tool that allows running a Node.js application as a background service (e.g., forever, PM2).
+ - Example using **forever**:
+  - Install forever globally on the server:
+    ```bash
+    npm install -g forever
+    ```
+  - Start the Jot Server:
+    ```bash
+    forever start app.js
+    ```
 
-```forever -w --watchDirectory=/folder/with/https/cert/files start app.js```
-
-Be sure that in the command line you defined the same path to certificate folder as you have set in **config.json** file as **root** parameter value. 
+ - If you are using an HTTPS server with certificates, make Jot Server watch for changes in the certificate folder:
+   ```bash
+   forever -w --watchDirectory=/path/to/certificates start app.js
+   ```
+   Ensure the path to the certificate folder matches the `root` parameter value in the `config.json` file.
 
 ### Docker
 
-It's possible to run Jot server in a container:
+You can also run Jot Server in a Docker container:
 ```bash
 docker run -p 5000:5000 -d unaio/jot-server:latest
 ```
