@@ -36,6 +36,11 @@ Jot Server is the server-side component of UNA Messenger, designed to support mu
       /* The transformer used by Primus, with "sockjs" selected as the default due to its stability.
          Learn more about transformers on the Primus page: https://github.com/primus/primus */
       "transformer": "sockjs",
+
+      /* Enable JWT token authentication instead of allowed IP list in `domain` config option
+         `secret` is randomly generated string, this config value must match
+         `Jot Server's JWT token secret word` value in Messenger options */
+       "secret": "",
     
       /* Fill in the fields below if you have an HTTPS server (recommended) */
       "root": "/folder/with/https/cert/files",
