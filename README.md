@@ -7,7 +7,7 @@ Jot Server is the server-side component of UNA Messenger, designed to support mu
 ### How to Install the Jot Server
 
 1. **Install Node.js and npm package manager**:
-    - Ensure you have the latest stable Node.js version (up to **14.x.x**) and npm on your server. For more details, visit [Node.js](https://nodejs.org/).
+    - Ensure you have the latest stable Node.js version and npm on your server. For more details, visit [Node.js](https://nodejs.org/).
 
 2. **Download Jot Server**:
     - Download the latest release from [GitHub](https://github.com/unacms/jot-server/releases).
