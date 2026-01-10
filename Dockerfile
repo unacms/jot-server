@@ -1,19 +1,29 @@
-FROM node:18
+FROM node:18-alpine AS builder
 
 # Create app directory
 WORKDIR /opt/jot-server
 
-# Install app dependencies
-# A wildcard is used to ensure both package.json AND package-lock.json are copied
-# where available (npm@5+)
-COPY package*.json ./
-
-RUN npm install
-# If you are building your code for production
-# RUN npm ci --only=production
-
-# Bundle app source
 COPY . .
 
+RUN npm ci --omit=dev
+
+
+# ---------- Runtime stage ----------
+
+FROM node:18-alpine
+
+WORKDIR /opt/jot-server
+
+ENV NODE_ENV=production
+
+# Bundle app source
+COPY --from=builder /opt/jot-server/node_modules .
+COPY --from=builder /opt/jot-server/package.json .
+COPY --from=builder /opt/jot-server/app.js .
+COPY --from=builder /opt/jot-server/config .
+
+USER node
+
 EXPOSE 5000
+
 CMD [ "node", "app.js" ]

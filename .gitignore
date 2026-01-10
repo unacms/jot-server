@@ -59,7 +59,6 @@ typings/
 
 # Exclude files
 log.log
-package-lock.json
 
 # Exclude IDE project folder
 .idea
