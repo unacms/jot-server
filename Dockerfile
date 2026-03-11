@@ -21,6 +21,7 @@ COPY --from=builder /opt/jot-server/node_modules .
 COPY --from=builder /opt/jot-server/package.json .
 COPY --from=builder /opt/jot-server/app.js .
 COPY --from=builder /opt/jot-server/config .
+COPY --from=builder /opt/jot-server/modules .
 
 USER node
 
